@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GiveTrack — Nonprofit CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --cream: #ede7d9;
+    --moss: #3d5a3e;
+    --moss-light: #5a7d5b;
+    --moss-pale: #d4e4d4;
+    --amber: #c8782a;
+    --amber-pale: #f5e6d0;
+    --clay: #8c4a2f;
+    --mist: #e8e2d8;
+    --shadow: rgba(15,14,12,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(61,90,62,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 80%, rgba(200,120,42,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+    background: var(--ink);
+    display: flex; flex-direction: column;
+    padding: 0;
+    z-index: 100;
+  }
+
+  .sidebar-brand {
+    padding: 28px 28px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .brand-icon {
+    width: 36px; height: 36px;
+    background: var(--moss);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+    font-size: 18px;
+  }
+
+  .brand-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--paper);
+    letter-spacing: -0.3px;
+    line-height: 1;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: rgba(245,240,232,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .sidebar-nav {
+    padding: 20px 16px;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    color: rgba(245,240,232,0.3);
+    padding: 12px 12px 6px;
+    margin-top: 8px;
+  }
+
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 10px 12px;
+    background: transparent; border: none; cursor: pointer;
+    border-radius: 8px;
+    color: rgba(245,240,232,0.6);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px; font-weight: 400;
+    text-align: left;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover { background: rgba(255,255,255,0.07); color: var(--paper); }
+  .nav-btn.active { background: var(--moss); color: var(--paper); font-weight: 500; }
+
+  .nav-btn .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-stats {
+    padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+
+  .stat-chip {
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .stat-chip-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px; font-weight: 500;
+    color: var(--paper);
+    line-height: 1;
+  }
+
+  .stat-chip-label {
+    font-size: 10px;
+    color: rgba(245,240,232,0.35);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 3px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 240px;
+    min-height: 100vh;
+    position: relative; z-index: 1;
+  }
+
+  .topbar {
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 36px;
+    border-bottom: 1px solid var(--mist);
+    background: rgba(245,240,232,0.8);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--ink);
+  }
+
+  .topbar-right { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none;
+    transition: all 0.18s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--moss);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--moss-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(61,90,62,0.3); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--mist);
+  }
+  .btn-ghost:hover { border-color: var(--ink); background: var(--cream); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--clay);
+    border: 1.5px solid rgba(140,74,47,0.25);
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .btn-danger:hover { background: rgba(140,74,47,0.08); }
+
+  .btn-edit {
+    background: transparent;
+    color: var(--amber);
+    border: 1.5px solid rgba(200,120,42,0.25);
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .btn-edit:hover { background: var(--amber-pale); }
+
+  /* ── CONTENT ── */
+  .content { padding: 32px 36px; }
+
+  /* ── HERO STATS ── */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 24px;
+    border: 1px solid var(--mist);
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--shadow); }
+
+  .stat-card::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .stat-card.green::after { background: var(--moss); }
+  .stat-card.amber::after { background: var(--amber); }
+  .stat-card.clay::after  { background: var(--clay); }
+  .stat-card.blue::after  { background: #4a7fa5; }
+
+  .stat-emoji { font-size: 24px; margin-bottom: 10px; }
+
+  .stat-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 32px; font-weight: 500;
+    color: var(--ink); line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 12px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: rgba(15,14,12,0.4);
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid var(--mist);
+    overflow: hidden;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--mist);
+  }
+
+  .panel-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; color: var(--ink);
+  }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr { background: var(--cream); }
+
+  th {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    color: rgba(15,14,12,0.45);
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--mist);
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 14px; color: var(--ink);
+    border-bottom: 1px solid var(--mist);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover { background: rgba(245,240,232,0.5); }
+
+  .mono { font-family: 'DM Mono', monospace; font-size: 12px; color: rgba(15,14,12,0.4); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .badge-green { background: var(--moss-pale); color: var(--moss); }
+  .badge-amber { background: var(--amber-pale); color: var(--amber); }
+
+  .amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px; font-weight: 500;
+    color: var(--moss);
+  }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: rgba(15,14,12,0.35);
+  }
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .actions { display: flex; gap: 6px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,14,12,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 480px; max-width: 95vw;
+    padding: 32px;
+    animation: slideUp 0.25s ease;
+    box-shadow: 0 24px 64px rgba(15,14,12,0.2);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0 }
+    to   { transform: translateY(0); opacity: 1 }
+  }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-full  { grid-column: 1 / -1; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+
+  label {
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: rgba(15,14,12,0.5);
+  }
+
+  input, select, textarea {
+    width: 100%; padding: 10px 14px;
+    border: 1.5px solid var(--mist);
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif; font-size: 14px;
+    color: var(--ink); background: var(--paper);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--moss);
+    box-shadow: 0 0 0 3px rgba(61,90,62,0.12);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed; bottom: 24px; right: 24px;
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 300;
+  }
+
+  .toast {
+    background: var(--ink); color: var(--paper);
+    padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+    animation: slideInRight 0.3s ease;
+    box-shadow: 0 8px 24px rgba(15,14,12,0.2);
+  }
+
+  .toast.success { border-left: 3px solid var(--moss); }
+  .toast.error   { border-left: 3px solid var(--clay); }
+
+  @keyframes slideInRight {
+    from { transform: translateX(60px); opacity: 0 }
+    to   { transform: translateX(0); opacity: 1 }
+  }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 0; margin-bottom: 28px; }
+
+  .tab {
+    padding: 10px 22px;
+    border: 1.5px solid var(--mist);
+    background: transparent; cursor: pointer;
+    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 500;
+    color: rgba(15,14,12,0.5);
+    transition: all 0.15s;
+  }
+  .tab:first-child { border-radius: 8px 0 0 8px; }
+  .tab:last-child  { border-radius: 0 8px 8px 0; margin-left: -1px; }
+  .tab:not(:first-child):not(:last-child) { margin-left: -1px; }
+  .tab.active { background: var(--moss); border-color: var(--moss); color: #fff; z-index: 1; }
+  .tab:hover:not(.active) { background: var(--cream); color: var(--ink); }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeUp 0.25s ease; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🌱</div>
+    <div class="brand-name">GiveTrack</div>
+    <div class="brand-sub">Nonprofit CRM</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <button class="nav-btn active" onclick="showSection('dashboard')">
+      <span class="icon">📊</span> Dashboard
+    </button>
+
+    <div class="nav-section-label">Manage</div>
+    <button class="nav-btn" onclick="showSection('donors')">
+      <span class="icon">🤝</span> Donors
+    </button>
+    <button class="nav-btn" onclick="showSection('volunteers')">
+      <span class="icon">🙋</span> Volunteers
+    </button>
+    <button class="nav-btn" onclick="showSection('donations')">
+      <span class="icon">💚</span> Donations
+    </button>
+  </nav>
+
+  <div class="sidebar-stats">
+    <div class="stat-chip">
+      <div class="stat-chip-val" id="sb-donors">0</div>
+      <div class="stat-chip-label">Donors</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-val" id="sb-vols">0</div>
+      <div class="stat-chip-label">Volunteers</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="refreshAll()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div id="sec-dashboard" class="section active">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="stat-emoji">🤝</div>
+          <div class="stat-val" id="stat-donors">0</div>
+          <div class="stat-label">Total Donors</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-emoji">🙋</div>
+          <div class="stat-val" id="stat-vols">0</div>
+          <div class="stat-label">Volunteers</div>
+        </div>
+        <div class="stat-card clay">
+          <div class="stat-emoji">💚</div>
+          <div class="stat-val" id="stat-donations">0</div>
+          <div class="stat-label">Donations</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-emoji">💰</div>
+          <div class="stat-val" id="stat-total">$0</div>
+          <div class="stat-label">Total Raised</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Recent Donations</div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Donor</th><th>Amount</th><th>Campaign</th><th>Date</th>
+          </tr></thead>
+          <tbody id="recent-donations-body">
+            <tr><td colspan="4">
+              <div class="empty-state">
+                <div class="empty-state-icon">🌿</div>
+                <p>No donations yet — add one to get started.</p>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── DONORS ── -->
+    <div id="sec-donors" class="section">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Donors</div>
+          <button class="btn btn-primary" onclick="openModal('donor')">+ Add Donor</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Email</th><th>Phone</th><th>Notes</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="donors-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── VOLUNTEERS ── -->
+    <div id="sec-volunteers" class="section">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Volunteers</div>
+          <button class="btn btn-primary" onclick="openModal('volunteer')">+ Add Volunteer</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Email</th><th>Skills</th><th>Availability</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="volunteers-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── DONATIONS ── -->
+    <div id="sec-donations" class="section">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Donations</div>
+          <button class="btn btn-primary" onclick="openModal('donation')">+ Record Donation</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Donor</th><th>Amount</th><th>Campaign</th><th>Method</th><th>Date</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="donations-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Donor Modal -->
+<div class="modal-overlay" id="modal-donor">
+  <div class="modal">
+    <div class="modal-title" id="donor-modal-title">Add Donor</div>
+    <input type="hidden" id="donor-id"/>
+    <div class="form-grid">
+      <div class="field"><label>First Name *</label><input id="d-first" placeholder="Jane"/></div>
+      <div class="field"><label>Last Name *</label><input id="d-last" placeholder="Smith"/></div>
+      <div class="field form-full"><label>Email *</label><input id="d-email" type="email" placeholder="jane@example.com"/></div>
+      <div class="field"><label>Phone</label><input id="d-phone" placeholder="555-0100"/></div>
+      <div class="field"><label>Address</label><input id="d-address" placeholder="123 Main St"/></div>
+      <div class="field form-full"><label>Notes</label><textarea id="d-notes" placeholder="Any notes…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('donor')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDonor()">Save Donor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Volunteer Modal -->
+<div class="modal-overlay" id="modal-volunteer">
+  <div class="modal">
+    <div class="modal-title" id="volunteer-modal-title">Add Volunteer</div>
+    <input type="hidden" id="volunteer-id"/>
+    <div class="form-grid">
+      <div class="field"><label>First Name *</label><input id="v-first" placeholder="Alex"/></div>
+      <div class="field"><label>Last Name *</label><input id="v-last" placeholder="Jordan"/></div>
+      <div class="field form-full"><label>Email *</label><input id="v-email" type="email" placeholder="alex@example.com"/></div>
+      <div class="field"><label>Phone</label><input id="v-phone" placeholder="555-0200"/></div>
+      <div class="field"><label>Availability</label><input id="v-avail" placeholder="Weekends"/></div>
+      <div class="field form-full"><label>Skills (comma-separated)</label><input id="v-skills" placeholder="Tutoring, Photography"/></div>
+      <div class="field form-full"><label>Notes</label><textarea id="v-notes" placeholder="Any notes…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('volunteer')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVolunteer()">Save Volunteer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Donation Modal -->
+<div class="modal-overlay" id="modal-donation">
+  <div class="modal">
+    <div class="modal-title" id="donation-modal-title">Record Donation</div>
+    <input type="hidden" id="donation-id"/>
+    <div class="form-grid">
+      <div class="field form-full"><label>Donor *</label>
+        <select id="don-donor"><option value="">— Select Donor —</option></select>
+      </div>
+      <div class="field"><label>Amount ($) *</label><input id="don-amount" type="number" min="0.01" step="0.01" placeholder="100.00"/></div>
+      <div class="field"><label>Campaign</label><input id="don-campaign" placeholder="General"/></div>
+      <div class="field"><label>Payment Method</label>
+        <select id="don-method">
+          <option value="">— Select —</option>
+          <option>Credit Card</option><option>Check</option>
+          <option>Cash</option><option>Bank Transfer</option><option>Online</option>
+        </select>
+      </div>
+      <div class="field"><label>Date</label><input id="don-date" type="date"/></div>
+      <div class="field form-full"><label>Notes</label><textarea id="don-notes" placeholder="Any notes…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('donation')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDonation()">Save Donation</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+const API = '';  // same origin; Flask serves this file
+
+// ── State ──
+let allDonors = [], allVolunteers = [], allDonations = [];
+
+// ── Navigation ──
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelector(`[onclick="showSection('${name}')"]`).classList.add('active');
+  const titles = { dashboard:'Dashboard', donors:'Donors', volunteers:'Volunteers', donations:'Donations' };
+  document.getElementById('page-title').textContent = titles[name];
+  if (name === 'donors')     renderDonors();
+  if (name === 'volunteers') renderVolunteers();
+  if (name === 'donations')  renderDonations();
+}
+
+// ── API Helpers ──
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+// ── Load Data ──
+async function refreshAll() {
+  [allDonors, allVolunteers, allDonations] = await Promise.all([
+    api('GET', '/donors'), api('GET', '/volunteers'), api('GET', '/donations')
+  ]);
+  const summary = await api('GET', '/summary');
+  document.getElementById('stat-donors').textContent    = summary.total_donors;
+  document.getElementById('stat-vols').textContent      = summary.total_volunteers;
+  document.getElementById('stat-donations').textContent = summary.total_donations;
+  document.getElementById('stat-total').textContent     = '$' + summary.total_amount_usd.toLocaleString();
+  document.getElementById('sb-donors').textContent      = summary.total_donors;
+  document.getElementById('sb-vols').textContent        = summary.total_volunteers;
+  renderRecentDonations();
+}
+
+// ── Render ──
+function donorName(id) {
+  const d = allDonors.find(x => x.id === id);
+  return d ? d.first_name + ' ' + d.last_name : 'Unknown';
+}
+
+function renderRecentDonations() {
+  const tb = document.getElementById('recent-donations-body');
+  const recent = [...allDonations].sort((a,b) => b.created_at.localeCompare(a.created_at)).slice(0, 8);
+  if (!recent.length) {
+    tb.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-state-icon">🌿</div><p>No donations yet.</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = recent.map(d => `
+    <tr>
+      <td>${donorName(d.donor_id)}</td>
+      <td><span class="amount">$${d.amount.toLocaleString()}</span></td>
+      <td><span class="badge badge-green">${d.campaign}</span></td>
+      <td class="mono">${d.date.slice(0,10)}</td>
+    </tr>`).join('');
+}
+
+function renderDonors() {
+  const tb = document.getElementById('donors-body');
+  if (!allDonors.length) {
+    tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">🤝</div><p>No donors yet.</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = allDonors.map(d => `
+    <tr>
+      <td><strong>${d.first_name} ${d.last_name}</strong></td>
+      <td>${d.email}</td>
+      <td class="mono">${d.phone || '—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.notes || '—'}</td>
+      <td><div class="actions">
+        <button class="btn btn-edit" onclick="editDonor('${d.id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteDonor('${d.id}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function renderVolunteers() {
+  const tb = document.getElementById('volunteers-body');
+  if (!allVolunteers.length) {
+    tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">🙋</div><p>No volunteers yet.</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = allVolunteers.map(v => `
+    <tr>
+      <td><strong>${v.first_name} ${v.last_name}</strong></td>
+      <td>${v.email}</td>
+      <td>${(v.skills||[]).map(s=>`<span class="badge badge-amber">${s}</span>`).join(' ') || '—'}</td>
+      <td>${v.availability || '—'}</td>
+      <td><div class="actions">
+        <button class="btn btn-edit" onclick="editVolunteer('${v.id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteVolunteer('${v.id}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function renderDonations() {
+  const tb = document.getElementById('donations-body');
+  if (!allDonations.length) {
+    tb.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">💚</div><p>No donations yet.</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = allDonations.map(d => `
+    <tr>
+      <td>${donorName(d.donor_id)}</td>
+      <td><span class="amount">$${d.amount.toLocaleString()}</span></td>
+      <td><span class="badge badge-green">${d.campaign}</span></td>
+      <td class="mono">${d.payment_method || '—'}</td>
+      <td class="mono">${d.date.slice(0,10)}</td>
+      <td><div class="actions">
+        <button class="btn btn-danger" onclick="deleteDonation('${d.id}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ── Modals ──
+function openModal(type) {
+  if (type === 'donation') populateDonorSelect();
+  document.getElementById('modal-' + type).classList.add('open');
+}
+function closeModal(type) {
+  document.getElementById('modal-' + type).classList.remove('open');
+  clearForm(type);
+}
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+function clearForm(type) {
+  if (type === 'donor') {
+    ['donor-id','d-first','d-last','d-email','d-phone','d-address','d-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('donor-modal-title').textContent = 'Add Donor';
+  }
+  if (type === 'volunteer') {
+    ['volunteer-id','v-first','v-last','v-email','v-phone','v-avail','v-skills','v-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('volunteer-modal-title').textContent = 'Add Volunteer';
+  }
+  if (type === 'donation') {
+    ['donation-id','don-amount','don-campaign','don-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('don-donor').value = '';
+    document.getElementById('don-method').value = '';
+    document.getElementById('don-date').value = '';
+  }
+}
+
+function populateDonorSelect() {
+  const sel = document.getElementById('don-donor');
+  sel.innerHTML = '<option value="">— Select Donor —</option>' +
+    allDonors.map(d => `<option value="${d.id}">${d.first_name} ${d.last_name}</option>`).join('');
+}
+
+// ── CRUD: Donors ──
+async function saveDonor() {
+  const id = document.getElementById('donor-id').value;
+  const body = {
+    first_name: document.getElementById('d-first').value.trim(),
+    last_name:  document.getElementById('d-last').value.trim(),
+    email:      document.getElementById('d-email').value.trim(),
+    phone:      document.getElementById('d-phone').value.trim(),
+    address:    document.getElementById('d-address').value.trim(),
+    notes:      document.getElementById('d-notes').value.trim(),
+  };
+  if (!body.first_name || !body.last_name || !body.email) { toast('Please fill required fields','error'); return; }
+  const res = id ? await api('PUT',`/donors/${id}`,body) : await api('POST','/donors',body);
+  if (res.error) { toast(res.error,'error'); return; }
+  toast(id ? 'Donor updated ✓' : 'Donor added ✓','success');
+  closeModal('donor'); await refreshAll(); renderDonors();
+}
+
+function editDonor(id) {
+  const d = allDonors.find(x => x.id === id);
+  document.getElementById('donor-id').value    = d.id;
+  document.getElementById('d-first').value     = d.first_name;
+  document.getElementById('d-last').value      = d.last_name;
+  document.getElementById('d-email').value     = d.email;
+  document.getElementById('d-phone').value     = d.phone;
+  document.getElementById('d-address').value   = d.address;
+  document.getElementById('d-notes').value     = d.notes;
+  document.getElementById('donor-modal-title').textContent = 'Edit Donor';
+  openModal('donor');
+}
+
+async function deleteDonor(id) {
+  if (!confirm('Delete this donor?')) return;
+  await api('DELETE',`/donors/${id}`);
+  toast('Donor deleted','success');
+  await refreshAll(); renderDonors();
+}
+
+// ── CRUD: Volunteers ──
+async function saveVolunteer() {
+  const id = document.getElementById('volunteer-id').value;
+  const skillsRaw = document.getElementById('v-skills').value;
+  const body = {
+    first_name:   document.getElementById('v-first').value.trim(),
+    last_name:    document.getElementById('v-last').value.trim(),
+    email:        document.getElementById('v-email').value.trim(),
+    phone:        document.getElementById('v-phone').value.trim(),
+    availability: document.getElementById('v-avail').value.trim(),
+    skills:       skillsRaw ? skillsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [],
+    notes:        document.getElementById('v-notes').value.trim(),
+  };
+  if (!body.first_name || !body.last_name || !body.email) { toast('Please fill required fields','error'); return; }
+  const res = id ? await api('PUT',`/volunteers/${id}`,body) : await api('POST','/volunteers',body);
+  if (res.error) { toast(res.error,'error'); return; }
+  toast(id ? 'Volunteer updated ✓' : 'Volunteer added ✓','success');
+  closeModal('volunteer'); await refreshAll(); renderVolunteers();
+}
+
+function editVolunteer(id) {
+  const v = allVolunteers.find(x => x.id === id);
+  document.getElementById('volunteer-id').value = v.id;
+  document.getElementById('v-first').value      = v.first_name;
+  document.getElementById('v-last').value       = v.last_name;
+  document.getElementById('v-email').value      = v.email;
+  document.getElementById('v-phone').value      = v.phone;
+  document.getElementById('v-avail').value      = v.availability;
+  document.getElementById('v-skills').value     = (v.skills||[]).join(', ');
+  document.getElementById('v-notes').value      = v.notes;
+  document.getElementById('volunteer-modal-title').textContent = 'Edit Volunteer';
+  openModal('volunteer');
+}
+
+async function deleteVolunteer(id) {
+  if (!confirm('Delete this volunteer?')) return;
+  await api('DELETE',`/volunteers/${id}`);
+  toast('Volunteer deleted','success');
+  await refreshAll(); renderVolunteers();
+}
+
+// ── CRUD: Donations ──
+async function saveDonation() {
+  const body = {
+    donor_id:       document.getElementById('don-donor').value,
+    amount:         parseFloat(document.getElementById('don-amount').value),
+    campaign:       document.getElementById('don-campaign').value.trim() || 'General',
+    payment_method: document.getElementById('don-method').value,
+    notes:          document.getElementById('don-notes').value.trim(),
+    date:           document.getElementById('don-date').value || new Date().toISOString(),
+  };
+  if (!body.donor_id || !body.amount) { toast('Donor and amount are required','error'); return; }
+  const res = await api('POST','/donations',body);
+  if (res.error) { toast(res.error,'error'); return; }
+  toast('Donation recorded ✓','success');
+  closeModal('donation'); await refreshAll(); renderDonations();
+}
+
+async function deleteDonation(id) {
+  if (!confirm('Delete this donation?')) return;
+  await api('DELETE',`/donations/${id}`);
+  toast('Donation deleted','success');
+  await refreshAll(); renderDonations();
+}
+
+// ── Toast ──
+function toast(msg, type='success') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${msg}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+// ── Init ──
+document.getElementById('don-date').valueAsDate = new Date();
+refreshAll();
+</script>
+</body>
+</html>
