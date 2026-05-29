@@ -663,7 +663,7 @@ let allDonors = [], allVolunteers = [], allDonations = [];
 // ── Navigation ──
 let currentSection = 'dashboard';
 
-async function showSection(name) {
+async function function showSection(name) {
   currentSection = name;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -717,7 +717,7 @@ function renderRecentDonations() {
   }
   tb.innerHTML = recent.map(d => `
     <tr>
-      <td>${donorName(d.donor_id)}</td>
+      <td>${donorName(d['donor-id'])}</td>
       <td><span class="amount">$${d.amount.toLocaleString()}</span></td>
       <td><span class="badge badge-green">${d.campaign}</span></td>
       <td class="mono">${d.date.slice(0,10)}</td>
@@ -770,7 +770,7 @@ function renderDonations() {
   }
   tb.innerHTML = allDonations.map(d => `
     <tr>
-      <td>${donorName(d.donor_id)}</td>
+      <td>${donorName(d['donor-id'])}</td>
       <td><span class="amount">$${d.amount.toLocaleString()}</span></td>
       <td><span class="badge badge-green">${d.campaign}</span></td>
       <td class="mono">${d.payment_method || '—'}</td>
@@ -899,14 +899,14 @@ async function deleteVolunteer(id) {
 // ── CRUD: Donations ──
 async function saveDonation() {
   const body = {
-    donor_id:       document.getElementById('don-donor').value,
+    document.getElementById('don-donor').value, 'donor-id': document.getElementById('don-donor').value,       document.getElementById('don-donor').value,
     amount:         parseFloat(document.getElementById('don-amount').value),
     campaign:       document.getElementById('don-campaign').value.trim() || 'General',
     payment_method: document.getElementById('don-method').value,
     notes:          document.getElementById('don-notes').value.trim(),
     date:           document.getElementById('don-date').value || new Date().toISOString(),
   };
-  if (!body.donor_id || !body.amount) { toast('Donor and amount are required','error'); return; }
+  if (!body['donor-id'] || !body.amount) { toast('Donor and amount are required','error'); return; }
   const res = await api('POST','/donations',body);
   if (res.error) { toast(res.error,'error'); return; }
   toast('Donation recorded ✓','success');
@@ -931,6 +931,35 @@ function toast(msg, type='success') {
 
 // ── Init ──
 document.getElementById('don-date').valueAsDate = new Date();
+
+// ═════════════════════════════════════════════
+// S3 Direct Upload Function
+// ═════════════════════════════════════════════
+async function uploadFile(donorId, file) {
+  // Step 1: Get presigned URL from Flask
+  const res = await fetch('/upload-url', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({donor-id: donorId, filename: file.name})
+  });
+  const { upload_url, key } = await res.json();
+
+  // Step 2: Upload directly to S3
+  await fetch(upload_url, {
+    method: 'PUT',
+    body: file
+  });
+
+  // Step 3: Save the S3 key to DynamoDB
+  await fetch(`/donors/${donorId}`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ profile_photo: key })
+  });
+  
+  toast('Profile photo uploaded successfully!', 'success');
+}
+
 refreshAll();
 </script>
 </body>
