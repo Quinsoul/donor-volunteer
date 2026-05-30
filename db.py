@@ -13,8 +13,9 @@ volunteers_table = dynamodb.Table('cloudnine-crm-volunteer')
 
 def create_donor(data):
     item = {
-        'donor-id': str(uuid.uuid4()),
-        'name': data['name'],
+        'donor_id': str(uuid.uuid4()),
+        'first_name': data.get('first_name', ''), 
+	'last_name': data.get('last_name', ''),
         'email': data['email'],
         'phone': data.get('phone', ''),
         'total_donated': data.get('total_donated', 0),
@@ -100,3 +101,51 @@ def update_volunteer(volunteer_id, data):
 
 def delete_volunteer(volunteer_id):
     volunteers_table.delete_item(Key={'volunteer-id': volunteer_id})
+
+# ── DONATION FUNCTIONS ──
+donations_table = dynamodb.Table('cloudnine-crm-donation')
+
+def create_donation_record(data):
+    item = {
+        'donation_id': str(uuid.uuid4()),
+        'donor_id': data['donor_id'],
+        'amount': str(data['amount']),
+        'campaign': data.get('campaign', 'General'),
+        'payment_method': data.get('payment_method', ''),
+        'notes': data.get('notes', ''),
+        'date': data.get('date', datetime.utcnow().isoformat()),
+        'created_at': datetime.utcnow().isoformat()
+    }
+    donations_table.put_item(Item=item)
+    return item
+
+def get_all_donations():
+    response = donations_table.scan()
+    return response.get('Items', [])
+
+def delete_donation(donation_id):
+    donations_table.delete_item(Key={'donation_id': donation_id})
+
+# ── DONATION FUNCTIONS ──
+donations_table = dynamodb.Table('cloudnine-crm-donation')
+
+def create_donation_record(data):
+    item = {
+        'donation_id': str(uuid.uuid4()),
+        'donor_id': data['donor_id'],
+        'amount': str(data['amount']),
+        'campaign': data.get('campaign', 'General'),
+        'payment_method': data.get('payment_method', ''),
+        'notes': data.get('notes', ''),
+        'date': data.get('date', datetime.utcnow().isoformat()),
+        'created_at': datetime.utcnow().isoformat()
+    }
+    donations_table.put_item(Item=item)
+    return item
+
+def get_all_donations():
+    response = donations_table.scan()
+    return response.get('Items', [])
+
+def delete_donation(donation_id):
+    donations_table.delete_item(Key={'donation_id': donation_id})
