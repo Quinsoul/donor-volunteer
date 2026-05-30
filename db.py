@@ -60,8 +60,9 @@ def delete_donor(donor_id):
 
 def create_volunteer(data):
     item = {
-        'volunteer-id': str(uuid.uuid4()),
-        'name': data['name'],
+        'volunteer_id': str(uuid.uuid4()),
+        'first_name': data.get('first_name', ''),
+	'last_name': data.get('last_name', ''),
         'email': data['email'],
         'phone': data.get('phone', ''),
         'skills': data.get('skills', []),
