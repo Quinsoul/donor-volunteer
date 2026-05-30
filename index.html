@@ -655,7 +655,7 @@
 <div class="toast-container" id="toasts"></div>
 
 <script>
-const API = 'http://';  // same origin; Flask serves this file
+const API = 'http://54.65.220.89';  // same origin; Flask serves this file
 
 // ── State ──
 let allDonors = [], allVolunteers = [], allDonations = [];
@@ -704,7 +704,7 @@ async function refreshAll() {
 
 // ── Render ──
 function donorName(id) {
-  const d = allDonors.find(x => x.id === id);
+  const d = allDonors.find(x => x.donor_id === id);
   return d ? d.first_name + ' ' + d.last_name : 'Unknown';
 }
 
@@ -814,7 +814,7 @@ function clearForm(type) {
 function populateDonorSelect() {
   const sel = document.getElementById('don-donor');
   sel.innerHTML = '<option value="">— Select Donor —</option>' +
-    allDonors.map(d => `<option value="${d.id}">${d.first_name} ${d.last_name}</option>`).join('');
+    allDonors.map(d => `<option value="${d.donor_id}">${d.first_name} ${d.last_name}</option>`).join('');
 }
 
 // ── CRUD: Donors ──
@@ -836,8 +836,8 @@ async function saveDonor() {
 }
 
 function editDonor(id) {
-  const d = allDonors.find(x => x.id === id);
-  document.getElementById('donor-id').value    = d.id;
+  const d = allDonors.find(x => x.donor_id === id);
+  document.getElementById('donor-id').value    = d.donor_id;
   document.getElementById('d-first').value     = d.first_name;
   document.getElementById('d-last').value      = d.last_name;
   document.getElementById('d-email').value     = d.email;
@@ -876,8 +876,8 @@ async function saveVolunteer() {
 }
 
 function editVolunteer(id) {
-  const v = allVolunteers.find(x => x.id === id);
-  document.getElementById('volunteer-id').value = v.id;
+  const v = allVolunteers.find(x => x.donor_id === id);
+  document.getElementById('volunteer-id').value = v.volunteer_id;
   document.getElementById('v-first').value      = v.first_name;
   document.getElementById('v-last').value       = v.last_name;
   document.getElementById('v-email').value      = v.email;
